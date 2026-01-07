@@ -1,6 +1,8 @@
 import "lib/github.com/diku-dk/cpprandom/random"
 
-module Definitions (engT: rng_engine) = {
+module Definitions = {
+  module rng_engine = minstd_rand
+  module rand_i8 = uniform_int_distribution i8 u32 rng_engine
   type t = i8
   type tab [n] = [2 * (n + 1)][2 * (n + 1)]t
 
@@ -84,7 +86,7 @@ module Definitions (engT: rng_engine) = {
       |> flatten
     in scatter_2d tableu indices values
 
-  def Measurement [n] (eng: engT.rng) (tableu: *tab [n]) (a: i64) : (engT.rng, *tab [n], t) =
+  def Measurement [n] (eng: rng_engine.rng) (tableu: *tab [n]) (a: i64) : (rng_engine.rng, *tab [n], t) =
     let p =
       reduce_comm (\p1 p2 ->
                      -- 0 used as neutral element, as we check n+1...2n, so if p is 0, we know that none is found that is equal to 0
@@ -101,23 +103,34 @@ module Definitions (engT: rng_engine) = {
                         else 0)
                   (0)
                   (n + 1...2 * n)
-    in if p == 0
+    in if p != 0
        then -- Call rowsum for all i in {1...2n}
-            let (is1, vs1) = map (\i -> rowsum tableu i p) (iota (2 * n)) |> unzip
+            let filtered_is = filter (\i -> i != p && tableu[i][a] == 1) (iota (2 * n))
+            let (is1, vs1) =
+              map (\i ->
+                     rowsum tableu i p)
+                  (filtered_is)
+              |> unzip
             let tmp1 = scatter_2d tableu (is1 |> flatten) (vs1 |> flatten)
             -- set (p - n) row equal to pth row
             let is2 = map (\i -> (p - n, i)) (iota (size (n)))
             let vs2 = map (\i -> tableu[p, i]) (iota (size (n)))
             let tmp2 = scatter_2d tmp1 is2 vs2
             -- set pth row 0 except rp is 0 or 1 50/50 and zpa = 1
-            let (eng1, rand_val) = engT.rand (0, 1i8) eng
-            let tmp3 = scatter_2d tmp2 [(p, 2 * n)]
-            let is3 = map (\i -> (p, i)) (iota 2 * n)
+            let (eng1, rand_val) = rand_i8.rand (0, 1i8) eng
+            let is3 = map (\i -> (p, i)) (iota (size n))
             let vs3 =
               map (\i ->
-                     if i == a then 1 else 0)
-                  (iota 2 * n)
-            in (eng1, scatter_2d tmp3 is3 vs3, rand_val)
+                     -- zpa
+                     if i == (n + a)
+                     then 1
+                     else -- rp
+                     if i == (2 * n)
+                     then rand_val
+                     else 0)
+                  (iota (size n))
+            let tmp3 = scatter_2d tmp2 is3 vs3
+            in (eng1, tmp3, rand_val)
        else -- set (2n +1) st row to be identically 0
             let is1 = map (\i -> (size (n), i)) (iota (size (n)))
             let vs1 = replicate (size (n)) 0
