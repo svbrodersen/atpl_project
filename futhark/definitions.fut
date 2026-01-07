@@ -21,7 +21,7 @@ module Definitions = {
     else 0
 
   local
-  def rowsum [n] (tableu: *tab [n]) (h: i64) (i: i64) : ([n * 2 + 1](i64, i64), [n * 2 + 1]i8) =
+  def rowsum [n] (tableu: tab [n]) (h: i64) (i: i64) : ([n * 2 + 1](i64, i64), [n * 2 + 1]i8) =
     let tot_sum = map (\j -> g tableu[i][j] tableu[i][j + n] tableu[h][j] tableu[h][j + n]) (iota n) |> reduce (+) 0
     let res = (2 * tableu[h][size (n) - 1] + 2 * tableu[i][size (n) - 1] + tot_sum) % 4
     let v = if res == 0 then 0 else 1
@@ -114,7 +114,7 @@ module Definitions = {
             let tmp1 = scatter_2d tableu (is1 |> flatten) (vs1 |> flatten)
             -- set (p - n) row equal to pth row
             let is2 = map (\i -> (p - n, i)) (iota (size (n)))
-            let vs2 = map (\i -> tableu[p, i]) (iota (size (n)))
+            let vs2 = map (\i -> tmp1[p][i]) (iota (size (n)))
             let tmp2 = scatter_2d tmp1 is2 vs2
             -- set pth row 0 except rp is 0 or 1 50/50 and zpa = 1
             let (eng1, rand_val) = rand_i8.rand (0, 1i8) eng
@@ -136,8 +136,8 @@ module Definitions = {
             let vs1 = replicate (size (n)) 0
             let tmp1 = scatter_2d tableu is1 vs1
             -- set call rowsum 2n+1, i+n
-            let is2 = map (\i -> (size (n), i + n)) (iota (n))
-            let vs2 = map (\i -> rowsum (tmp1, size (n), i + n)) (iota (n))
-            let tmp2 = scatter_2d tmp1 is2 vs2
+            let filtered_is = filter (\i -> tmp1[i][a] == 1) (iota n)
+            let (is2, vs2) = map (\i -> rowsum tmp1 (size n) (i + n)) (filtered_is) |> unzip
+            let tmp2 = scatter_2d tmp1 (is2 |> flatten) (vs2 |> flatten)
             in (eng, tmp2, tmp2[size (n) - 1][size (n) - 1])
 }
