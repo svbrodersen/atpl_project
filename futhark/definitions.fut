@@ -129,15 +129,42 @@ def Measurement [n] (eng: rng_engine.rng) (tableu: *tab [n]) (a: i64) : (rng_eng
                 (iota (size n))
           let tmp3 = scatter_2d tmp2 is3 vs3
           in (eng1, tmp3, rand_val)
-     else -- set (2n + 1) st row to be identically 0
+     else -- **PARALLELIZED DETERMINISTIC CASE**
           let max_idx = (size n) - 1
           let is1 = map (\i -> (max_idx, i)) (iota (size n))
-          let vs1 = replicate (size (n)) 0
+          let vs1 = replicate (size n) 0
           let tmp1 = scatter_2d tableu is1 vs1
-          -- call rowsum 2n+1, i+n
+          -- Filter indices where x_ia == 1
           let filtered_is = filter (\i -> tmp1[i][a] == 1) (iota n)
-          let tmp2 =
-            loop tmp = tmp1 for i in filtered_is do
-              let (is, vs) = rowsum tmp max_idx (i + n)
-              in scatter_2d (copy tmp) is vs
-          in (eng, tmp2, tmp2[max_idx][max_idx])
+          -- Compute all contributions in parallel using INITIAL tmp1 state
+          let contributions =
+            map (\i ->
+                   let idx = i + n
+                   let tot_sum =
+                     map (\j ->
+                            g tmp1[idx][j]
+                              tmp1[idx][j + n]
+                              tmp1[max_idx][j]
+                              tmp1[max_idx][j + n])
+                         (iota n)
+                     |> reduce (+) 0
+                   let res = (2 * tmp1[max_idx][max_idx] + 2 * tmp1[idx][max_idx] + tot_sum) % 4
+                   let phase_contrib = if res == 0 then 0 else 1
+                   let x_contribs = map (\j -> tmp1[idx][j]) (iota n)
+                   let z_contribs = map (\j -> tmp1[idx][n + j]) (iota n)
+                   in (phase_contrib, x_contribs, z_contribs))
+                filtered_is
+            |> unzip3
+          -- XOR all contributions together
+          let (phases, x_vals, z_vals) = contributions
+          let final_phase = reduce (^) 0 phases
+          let final_x = map (\j -> reduce (^) 0 (map (\arr -> arr[j]) x_vals)) (iota n)
+          let final_z = map (\j -> reduce (^) 0 (map (\arr -> arr[j]) z_vals)) (iota n)
+          -- Update row max_idx with final values
+          let is2 =
+            map (\j -> (max_idx, j)) (iota n)
+            ++ map (\j -> (max_idx, j + n)) (iota n)
+            ++ [(max_idx, max_idx)]
+          let vs2 = final_x ++ final_z ++ [final_phase]
+          let tmp2 = scatter_2d tmp1 is2 vs2
+          in (eng, tmp2, final_phase)
