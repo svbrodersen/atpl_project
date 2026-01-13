@@ -3,9 +3,9 @@ import "lib/github.com/diku-dk/cpprandom/random"
 module rng_engine = minstd_rand
 module rand_i8 = uniform_int_distribution i8 u32 rng_engine
 type t = i8
-type tab [n] = [2 * (n + 1)][2 * (n + 1)]t
+type tab [n] = [2 * n + 1][2 * n + 1]t
 
-local def size (n: i64) : i64 = 2 * (n + 1)
+local def size (n: i64) : i64 = 2 * n + 1
 
 local
 def g (x1: t) (x2: t) (z1: t) (z2: t) =
@@ -29,10 +29,10 @@ def rowsum [n] (tableu: tab [n]) (h: i64) (i: i64) : ([n * 2 + 1](i64, i64), [n 
   in (is ++ [(h, size (n))], vs ++ [v])
 
 def initial_tableu (n: i64) : tab [n] =
-  let tmp = 2 * (n + 1)
+  let tmp = 2 * n + 1
   in tabulate_2d tmp tmp (\i j ->
-                            if j == n - 1
-                            then -- r_i
+                            if j == tmp - 1 || i == tmp - 1
+                            then -- r_i and last row
                                  0
                             else if i == j
                             then -- diagonal
@@ -43,7 +43,7 @@ def CNOT [n] (tableu: *tab [n]) (a: i64) (b: i64) : *tab [n] =
   let tmp = 2 * n
   let indices =
     map (\i ->
-           [(i, tmp - 1), (i, b), (i, n + a)])
+           [(i, tmp), (i, b), (i, n + a)])
         (iota tmp)
     |> flatten
   let values =
@@ -52,7 +52,7 @@ def CNOT [n] (tableu: *tab [n]) (a: i64) (b: i64) : *tab [n] =
            let zib = tableu[i][n + b]
            let xia = tableu[i][a]
            let xib = tableu[i][b]
-           let ri = tableu[i][tmp - 1]
+           let ri = tableu[i][tmp]
            in [ri ^ xia * zib * (xib ^ zia ^ 1i8), xib ^ xia, zia ^ zib])
         (iota tmp)
     |> flatten
@@ -60,10 +60,10 @@ def CNOT [n] (tableu: *tab [n]) (a: i64) (b: i64) : *tab [n] =
 
 def Hadamard [n] (tableu: *tab [n]) (a: i64) : *tab [n] =
   let tmp = 2 * n
-  let indices = map (\i -> [(i, tmp - 1), (i, a), (i, n + a)]) (iota tmp) |> flatten
+  let indices = map (\i -> [(i, tmp), (i, a), (i, n + a)]) (iota tmp) |> flatten
   let values =
     map (\i ->
-           let ri = tableu[i][tmp - 1]
+           let ri = tableu[i][tmp]
            let xia = tableu[i][a]
            let zia = tableu[i][a + n]
            in [ri ^ xia * zia, zia, xia])
@@ -74,10 +74,10 @@ def Hadamard [n] (tableu: *tab [n]) (a: i64) : *tab [n] =
 
 def Phase [n] (tableu: *tab [n]) (a: i64) : *tab [n] =
   let tmp = 2 * n
-  let indices = map (\i -> [(i, tmp - 1), (i, a + n)]) (iota tmp) |> flatten
+  let indices = map (\i -> [(i, tmp), (i, a + n)]) (iota tmp) |> flatten
   let values =
     map (\i ->
-           let ri = tableu[i][tmp - 1]
+           let ri = tableu[i][tmp]
            let xia = tableu[i][a]
            let zia = tableu[i][n + a]
            in [ri ^ xia * zia, zia ^ xia])
