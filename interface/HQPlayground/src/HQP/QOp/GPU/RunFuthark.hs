@@ -8,7 +8,6 @@ module HQP.QOp.GPU.RunFuthark
   , runSimulateDebug
   ) where
 
-
 import Control.Exception (bracket)
 import Control.Monad (when)
 import Foreign
@@ -33,7 +32,6 @@ data GPUResult = GPUResult
   , gpuTableau      :: !(VS.Vector Int8)
   } deriving (Show)
 
-
 foreign import ccall unsafe "futhark_context_config_new"
   cfg_new :: IO (Ptr Cfg)
 
@@ -51,7 +49,6 @@ foreign import ccall unsafe "futhark_context_sync"
 
 foreign import ccall unsafe "futhark_context_get_error"
   ctx_get_error :: Ptr Ctx -> IO CString
-
 
 foreign import ccall unsafe "futhark_new_i64_1d"
   new_i64_1d :: Ptr Ctx -> Ptr Int64 -> Int64 -> IO (Ptr ArrI64_1d)
@@ -100,13 +97,16 @@ packInstrs instrs =
   , VS.fromList [ b i      | i <- instrs ]
   )
 
+dieRC :: Ptr Ctx -> String -> CInt -> IO a
+dieRC ctx where_ rc = do
+  cstr <- ctx_get_error ctx
+  msg <- peekCString cstr
+  error (where_ <> " failed rc=" <> show rc <> " err=" <> msg)
+
 syncOrDie :: Ptr Ctx -> IO ()
 syncOrDie ctx = do
   rc <- ctx_sync ctx
-  when (rc /= 0) $ do
-    cstr <- ctx_get_error ctx
-    msg <- peekCString cstr
-    error ("Futhark runtime error: " <> msg)
+  when (rc /= 0) $ dieRC ctx "futhark_context_sync" rc
 
 readI8_1d_values :: Ptr Ctx -> Ptr ArrI8_1d -> IO (VS.Vector Int8)
 readI8_1d_values ctx arr = do
@@ -115,8 +115,8 @@ readI8_1d_values ctx arr = do
   mv <- VSM.new len
   VSM.unsafeWith mv $ \pOut -> do
     rc <- values_i8_1d ctx arr pOut
-    when (rc /= 0) $ error ("futhark_values_i8_1d failed rc=" <> show rc)
-  syncOrDie ctx            -- IMPORTANT for OpenCL/CUDA
+    when (rc /= 0) $ dieRC ctx "futhark_values_i8_1d" rc
+  syncOrDie ctx
   VS.unsafeFreeze mv
 
 readI8_2d_values :: Ptr Ctx -> Ptr ArrI8_2d -> IO (Int, Int, VS.Vector Int8)
@@ -130,8 +130,8 @@ readI8_2d_values ctx arr = do
   mv <- VSM.new len
   VSM.unsafeWith mv $ \pOut -> do
     rc <- values_i8_2d ctx arr pOut
-    when (rc /= 0) $ error ("futhark_values_i8_2d failed rc=" <> show rc)
-  syncOrDie ctx            -- IMPORTANT for OpenCL/CUDA
+    when (rc /= 0) $ dieRC ctx "futhark_values_i8_2d" rc
+  syncOrDie ctx
   v <- VS.unsafeFreeze mv
   pure (r, c, v)
 
@@ -141,7 +141,6 @@ callSimulate
 callSimulate ctx seed numQubits instrs = do
   let (gates, cQ, tQ) = packInstrs instrs
       n64 = fromIntegral (VS.length gates) :: Int64
-
   VS.unsafeWith gates $ \pG ->
     VS.unsafeWith cQ $ \pC ->
       VS.unsafeWith tQ $ \pT -> do
@@ -154,7 +153,7 @@ callSimulate ctx seed numQubits instrs = do
             _ <- free_i64_1d ctx gArr
             _ <- free_i64_1d ctx cArr
             _ <- free_i64_1d ctx tArr
-            if rc /= 0 then error ("futhark_entry_simulate failed rc=" <> show rc) else pure ()
+            when (rc /= 0) $ dieRC ctx "futhark_entry_simulate" rc
             syncOrDie ctx
             tabArr  <- peek outTabPtr
             measArr <- peek outMeasPtr
@@ -179,12 +178,11 @@ runSimulateDebug ctx seed numQubits instrs = do
   _ <- free_i8_2d ctx tabArr
   pure (meas, (r, c, tab))
 
-
 runSimulate :: Ptr Ctx -> Int32 -> Int -> [Instr] -> IO GPUResult
 runSimulate ctx seed numQubits instrs = do
   (tabArr, measArr) <- callSimulate ctx seed numQubits instrs
   meas <- readI8_1d_values ctx measArr
-  (r,c,tab) <- readI8_2d_values ctx tabArr
+  (r, c, tab) <- readI8_2d_values ctx tabArr
   _ <- free_i8_1d ctx measArr
   _ <- free_i8_2d ctx tabArr
   pure GPUResult
