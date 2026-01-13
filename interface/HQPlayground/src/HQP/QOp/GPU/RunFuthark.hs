@@ -2,9 +2,12 @@
 
 module HQP.QOp.GPU.RunFuthark
   ( withFuthark
+  , GPUResult(..)
+  , runSimulate
   , runSimulateMeasurements
   , runSimulateDebug
   ) where
+
 
 import Control.Exception (bracket)
 import Control.Monad (when)
@@ -22,6 +25,14 @@ data Cfg
 data ArrI64_1d
 data ArrI8_1d
 data ArrI8_2d
+
+data GPUResult = GPUResult
+  { gpuMeasurements :: !(VS.Vector Int8)
+  , gpuRows         :: !Int
+  , gpuCols         :: !Int
+  , gpuTableau      :: !(VS.Vector Int8)
+  } deriving (Show)
+
 
 foreign import ccall unsafe "futhark_context_config_new"
   cfg_new :: IO (Ptr Cfg)
@@ -97,17 +108,6 @@ syncOrDie ctx = do
     msg <- peekCString cstr
     error ("Futhark runtime error: " <> msg)
 
-
-readI8_1d :: Ptr Ctx -> Ptr ArrI8_1d -> IO (VS.Vector Int8)
-readI8_1d ctx arr = do
-  shp <- shape_i8_1d ctx arr
-  len <- fromIntegral <$> peekElemOff shp 0
-  mv <- VSM.new len
-  VSM.unsafeWith mv $ \pOut -> do
-    rc <- values_i8_1d ctx arr pOut
-    if rc /= 0 then error ("futhark_values_i8_1d failed rc=" <> show rc) else pure ()
-  VS.unsafeFreeze mv
-
 readI8_1d_values :: Ptr Ctx -> Ptr ArrI8_1d -> IO (VS.Vector Int8)
 readI8_1d_values ctx arr = do
   shp <- shape_i8_1d ctx arr
@@ -118,22 +118,6 @@ readI8_1d_values ctx arr = do
     when (rc /= 0) $ error ("futhark_values_i8_1d failed rc=" <> show rc)
   syncOrDie ctx            -- IMPORTANT for OpenCL/CUDA
   VS.unsafeFreeze mv
-
-
-readI8_2d :: Ptr Ctx -> Ptr ArrI8_2d -> IO (Int, Int, VS.Vector Int8)
-readI8_2d ctx arr = do
-  shp <- shape_i8_2d ctx arr
-  r64 <- peekElemOff shp 0
-  c64 <- peekElemOff shp 1
-  let r = fromIntegral r64
-      c = fromIntegral c64
-      len = r * c
-  mv <- VSM.new len
-  VSM.unsafeWith mv $ \pOut -> do
-    rc <- values_i8_2d ctx arr pOut
-    if rc /= 0 then error ("futhark_values_i8_2d failed rc=" <> show rc) else pure ()
-  v <- VS.unsafeFreeze mv
-  pure (r, c, v)
 
 readI8_2d_values :: Ptr Ctx -> Ptr ArrI8_2d -> IO (Int, Int, VS.Vector Int8)
 readI8_2d_values ctx arr = do
@@ -150,7 +134,6 @@ readI8_2d_values ctx arr = do
   syncOrDie ctx            -- IMPORTANT for OpenCL/CUDA
   v <- VS.unsafeFreeze mv
   pure (r, c, v)
-
 
 callSimulate
   :: Ptr Ctx -> Int32 -> Int -> [Instr]
@@ -195,3 +178,18 @@ runSimulateDebug ctx seed numQubits instrs = do
   _ <- free_i8_1d ctx measArr
   _ <- free_i8_2d ctx tabArr
   pure (meas, (r, c, tab))
+
+
+runSimulate :: Ptr Ctx -> Int32 -> Int -> [Instr] -> IO GPUResult
+runSimulate ctx seed numQubits instrs = do
+  (tabArr, measArr) <- callSimulate ctx seed numQubits instrs
+  meas <- readI8_1d_values ctx measArr
+  (r,c,tab) <- readI8_2d_values ctx tabArr
+  _ <- free_i8_1d ctx measArr
+  _ <- free_i8_2d ctx tabArr
+  pure GPUResult
+    { gpuMeasurements = meas
+    , gpuRows = r
+    , gpuCols = c
+    , gpuTableau = tab
+    }

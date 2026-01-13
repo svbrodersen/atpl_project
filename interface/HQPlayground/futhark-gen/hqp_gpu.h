@@ -11,6 +11,15 @@
 #include <stdio.h>
 #include <float.h>
 
+#define CL_TARGET_OPENCL_VERSION 120
+#define CL_USE_DEPRECATED_OPENCL_1_2_APIS
+#ifdef __APPLE__
+#define CL_SILENCE_DEPRECATION
+#include <OpenCL/cl.h>
+#else
+#include <CL/cl.h>
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -23,6 +32,26 @@ int futhark_context_config_set_tuning_param(struct futhark_context_config *cfg, 
 struct futhark_context;
 struct futhark_context *futhark_context_new(struct futhark_context_config *cfg);
 void futhark_context_free(struct futhark_context *cfg);
+void futhark_context_config_set_default_thread_block_size(struct futhark_context_config *cfg, int size);
+void futhark_context_config_set_default_grid_size(struct futhark_context_config *cfg, int size);
+void futhark_context_config_set_default_group_size(struct futhark_context_config *cfg, int size);
+void futhark_context_config_set_default_num_groups(struct futhark_context_config *cfg, int size);
+void futhark_context_config_set_default_tile_size(struct futhark_context_config *cfg, int size);
+void futhark_context_config_set_default_reg_tile_size(struct futhark_context_config *cfg, int size);
+void futhark_context_config_set_default_registers(struct futhark_context_config *cfg, int size);
+void futhark_context_config_set_default_cache(struct futhark_context_config *cfg, int size);
+void futhark_context_config_set_default_threshold(struct futhark_context_config *cfg, int size);
+void futhark_context_config_set_unified_memory(struct futhark_context_config *cfg, int flag);
+void futhark_context_config_add_build_option(struct futhark_context_config *cfg, const char *opt);
+void futhark_context_config_set_device(struct futhark_context_config *cfg, const char *s);
+void futhark_context_config_set_platform(struct futhark_context_config *cfg, const char *s);
+void futhark_context_config_select_device_interactively(struct futhark_context_config *cfg);
+void futhark_context_config_list_devices(struct futhark_context_config *cfg);
+const char *futhark_context_config_get_program(struct futhark_context_config *cfg);
+void futhark_context_config_set_program(struct futhark_context_config *cfg, const char *s);
+void futhark_context_config_dump_binary_to(struct futhark_context_config *cfg, const char *s);
+void futhark_context_config_load_binary_from(struct futhark_context_config *cfg, const char *s);
+void futhark_context_config_set_command_queue(struct futhark_context_config *cfg, cl_command_queue);
 void futhark_context_config_set_debugging(struct futhark_context_config *cfg, int flag);
 void futhark_context_config_set_profiling(struct futhark_context_config *cfg, int flag);
 void futhark_context_config_set_logging(struct futhark_context_config *cfg, int flag);
@@ -33,27 +62,27 @@ const char *futhark_get_tuning_param_class(int);
 // Arrays
 struct futhark_i64_1d;
 struct futhark_i64_1d *futhark_new_i64_1d(struct futhark_context *ctx, const int64_t *data, int64_t dim0);
-struct futhark_i64_1d *futhark_new_raw_i64_1d(struct futhark_context *ctx, unsigned char *data, int64_t dim0);
+struct futhark_i64_1d *futhark_new_raw_i64_1d(struct futhark_context *ctx, cl_mem data, int64_t dim0);
 int futhark_free_i64_1d(struct futhark_context *ctx, struct futhark_i64_1d *arr);
 int futhark_values_i64_1d(struct futhark_context *ctx, struct futhark_i64_1d *arr, int64_t *data);
 int futhark_index_i64_1d(struct futhark_context *ctx, int64_t *out, struct futhark_i64_1d *arr, int64_t i0);
-unsigned char *futhark_values_raw_i64_1d(struct futhark_context *ctx, struct futhark_i64_1d *arr);
+cl_mem futhark_values_raw_i64_1d(struct futhark_context *ctx, struct futhark_i64_1d *arr);
 const int64_t *futhark_shape_i64_1d(struct futhark_context *ctx, struct futhark_i64_1d *arr);
 struct futhark_i8_1d;
 struct futhark_i8_1d *futhark_new_i8_1d(struct futhark_context *ctx, const int8_t *data, int64_t dim0);
-struct futhark_i8_1d *futhark_new_raw_i8_1d(struct futhark_context *ctx, unsigned char *data, int64_t dim0);
+struct futhark_i8_1d *futhark_new_raw_i8_1d(struct futhark_context *ctx, cl_mem data, int64_t dim0);
 int futhark_free_i8_1d(struct futhark_context *ctx, struct futhark_i8_1d *arr);
 int futhark_values_i8_1d(struct futhark_context *ctx, struct futhark_i8_1d *arr, int8_t *data);
 int futhark_index_i8_1d(struct futhark_context *ctx, int8_t *out, struct futhark_i8_1d *arr, int64_t i0);
-unsigned char *futhark_values_raw_i8_1d(struct futhark_context *ctx, struct futhark_i8_1d *arr);
+cl_mem futhark_values_raw_i8_1d(struct futhark_context *ctx, struct futhark_i8_1d *arr);
 const int64_t *futhark_shape_i8_1d(struct futhark_context *ctx, struct futhark_i8_1d *arr);
 struct futhark_i8_2d;
 struct futhark_i8_2d *futhark_new_i8_2d(struct futhark_context *ctx, const int8_t *data, int64_t dim0, int64_t dim1);
-struct futhark_i8_2d *futhark_new_raw_i8_2d(struct futhark_context *ctx, unsigned char *data, int64_t dim0, int64_t dim1);
+struct futhark_i8_2d *futhark_new_raw_i8_2d(struct futhark_context *ctx, cl_mem data, int64_t dim0, int64_t dim1);
 int futhark_free_i8_2d(struct futhark_context *ctx, struct futhark_i8_2d *arr);
 int futhark_values_i8_2d(struct futhark_context *ctx, struct futhark_i8_2d *arr, int8_t *data);
 int futhark_index_i8_2d(struct futhark_context *ctx, int8_t *out, struct futhark_i8_2d *arr, int64_t i0, int64_t i1);
-unsigned char *futhark_values_raw_i8_2d(struct futhark_context *ctx, struct futhark_i8_2d *arr);
+cl_mem futhark_values_raw_i8_2d(struct futhark_context *ctx, struct futhark_i8_2d *arr);
 const int64_t *futhark_shape_i8_2d(struct futhark_context *ctx, struct futhark_i8_2d *arr);
 
 // Opaque values
@@ -66,6 +95,7 @@ int futhark_entry_simulate(struct futhark_context *ctx, struct futhark_i8_2d **o
 
 // Miscellaneous
 int futhark_context_sync(struct futhark_context *ctx);
+cl_command_queue futhark_context_get_command_queue(struct futhark_context *ctx);
 void futhark_context_config_set_cache_file(struct futhark_context_config *cfg, const char *f);
 char *futhark_context_get_error(struct futhark_context *ctx);
 void futhark_context_set_logging_file(struct futhark_context *ctx, FILE *f);
@@ -73,7 +103,7 @@ void futhark_context_pause_profiling(struct futhark_context *ctx);
 void futhark_context_unpause_profiling(struct futhark_context *ctx);
 char *futhark_context_report(struct futhark_context *ctx);
 int futhark_context_clear_caches(struct futhark_context *ctx);
-#define FUTHARK_BACKEND_c
+#define FUTHARK_BACKEND_opencl
 #define FUTHARK_SUCCESS 0
 #define FUTHARK_PROGRAM_ERROR 2
 #define FUTHARK_OUT_OF_MEMORY 3

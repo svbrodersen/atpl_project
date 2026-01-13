@@ -5,7 +5,7 @@ import Data.Int (Int32)
 import qualified Data.Vector.Storable as VS
 
 import HQP.QOp.GPU.Compile (compileProgram, Instr(..))
-import HQP.QOp.GPU.RunFuthark (withFuthark, runSimulateMeasurements, runSimulateDebug)
+import HQP.QOp.GPU.RunFuthark (withFuthark, runSimulate, GPUResult(..))
 import Programs.RepeaterProtocol (teleport)
 
 numQubitsFromInstrs :: [Instr] -> Int
@@ -27,8 +27,12 @@ runTest name nQ instrs = do
   putStrLn ("=== " <> name <> " ===")
   withFuthark $ \ctx ->
     forM_ ([1..20] :: [Int32]) $ \seed -> do
-      meas <- runSimulateMeasurements ctx seed nQ instrs
-      putStrLn (show seed <> " -> " <> show (VS.toList meas))
+      -- run the simulation and get both tableau and measurements
+      GPUResult { gpuTableau = tab, gpuMeasurements = meas } <-
+        runSimulate ctx seed nQ instrs
+      -- print both tableau and measurements for debugging
+      -- putStrLn (show seed <> " -> tableau: " <> show (VS.toList tab) <> ", measurements: " <> show (VS.toList meas))
+      putStrLn (show seed <> " -> measurements: " <> show (VS.toList meas))
 
 testDeterministicZero :: IO ()
 testDeterministicZero =
@@ -64,22 +68,22 @@ testIndependentQubits =
     , Instr 0 1 0
     ]
 
-testTeleport :: IO ()
-testTeleport = do
-  putStrLn ""
-  putStrLn "=== Teleport program ==="
+-- testTeleport :: IO ()
+-- testTeleport = do
+--   putStrLn ""
+--   putStrLn "=== Teleport program ==="
 
-  let prog = teleport 3 0 1 2
-  case compileProgram prog of
-    Left err -> print err
-    Right (_nQ_from_HQP, instrs) -> do
-      let nQ = numQubitsFromInstrs instrs
-      validate nQ instrs
-      putStrLn ("instr count = " <> show (length instrs))
-      withFuthark $ \ctx ->
-        forM_ ([2026..2045] :: [Int32]) $ \seed -> do
-          meas <- runSimulateMeasurements ctx seed nQ instrs
-          putStrLn (show seed <> " -> " <> show (VS.toList meas))
+--   let prog = teleport 3 0 1 2
+--   case compileProgram prog of
+--     Left err -> print err
+--     Right (_nQ_from_HQP, instrs) -> do
+--       let nQ = numQubitsFromInstrs instrs
+--       validate nQ instrs
+--       putStrLn ("instr count = " <> show (length instrs))
+--       withFuthark $ \ctx ->
+--         forM_ ([2026..2045] :: [Int32]) $ \seed -> do
+--           meas <- runSimulateMeasurements ctx seed nQ instrs
+--           putStrLn (show seed <> " -> " <> show (VS.toList meas))
 
 main :: IO ()
 main = do
@@ -87,24 +91,3 @@ main = do
   testHadamardRandom
   testBellPair
   testIndependentQubits
-  testTeleport
-
-  putStrLn ""
-  putStrLn "=== Teleport program debug ==="
-
-  let prog = teleport 3 0 1 2
-  case compileProgram prog of
-    Left err -> print err
-    Right (_nQ_from_HQP, instrs) -> do
-      let nQ = numQubitsFromInstrs instrs
-      validate nQ instrs
-      putStrLn ("instr count = " <> show (length instrs))
-      print instrs
-      withFuthark $ \ctx -> do
-        (meas, (rows, cols, tab)) <- runSimulateDebug ctx (2026 :: Int32) nQ instrs
-        putStrLn ("Measurements = " <> show (VS.toList meas))
-        putStrLn ("Tableau shape = " <> show (rows, cols))
-        putStrLn ("Row 0 = " <> show (take cols (VS.toList tab)))
-        forM_ [0 .. (rows-1)] $ \r -> do
-          let row = take cols (drop (r * cols) (VS.toList tab))
-          putStrLn ("Row " <> show r <> ": " <> show row)
