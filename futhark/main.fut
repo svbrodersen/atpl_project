@@ -23,7 +23,7 @@ entry simulate [n] (seed: i32) (num_qubits: i64) (gates: [n]i64) (cQ: [n]i64) (t
          then (CNOT tableu control target, i + 1, rng, measurements, measurement_count)
          else -- do nothing
               (tableu, i + 1, rng, measurements, measurement_count)
-  in (trace tableu, trace measurements)
+  in (tableu, measurements)
 
 entry main [n] (seed: i32) (num_qubits: i64) (gates: [n]i64) (cQ: [n]i64) (tQ: [n]i64) : []i8 =
   let (_, measurements) = trace (simulate seed num_qubits gates cQ tQ)
