@@ -24,12 +24,17 @@ cnotHelper qubit_num c t
     | c == t = error "Cannot apply CNOT with both control and target qubit the same"
     | c < t = Unitary (Id c ⊗ C (Id (t-c-1) ⊗ X) ⊗ Id (qubit_num - 1 - t))
     | otherwise =
-        Unitary (hh ∘ Id c ⊗ C (X ⊗ Id (c-t-1)) ⊗ Id (qubit_num-c-1) ∘ hh)
+        Unitary (hh ∘ Id t ⊗ C (Id (c-t-1) ⊗ X) ⊗ Id (qubit_num-c-1) ∘ hh)
     where
         hh = hAt qubit_num c ∘ hAt qubit_num t
 
 hAt :: Int -> Int -> QOp
-hAt n i = Id i ⊗ H ⊗ Id (n-i-1)
+hAt qubit_num qubit1 = Id qubit1 ⊗ H ⊗ Id (qubit_num-qubit1-1)
+
+interpretOperations :: Int -> [OperationInput] -> Program
+interpretOperations qubit_num ops = map (interpretOperation qubit_num) ops
+
+
 
 
 
