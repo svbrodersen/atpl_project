@@ -9,11 +9,11 @@ datasets:
 		for g in $(NUM_GATES); do \
 			echo "Generating data/$${q}_$${g}.in ..."; \
 			futhark dataset \
-				-g i32 --i64-bounds=$${q}:$${q} \
-				-g i64 --i64-bounds=0:3 \
-				-g [$${g}]i64 --i64-bounds=0:$${q} \
-				-g [$${g}]i64 --i64-bounds=0:$${q} \
-				-g [$${g}]i64 \
+				-g i32 \
+				--i64-bounds=$${q}:$${q} -g i64 \
+				--i64-bounds=0:3 -g [$${g}]i64 \
+				--i64-bounds=0:$${q} -g [$${g}]i64 \
+				--i64-bounds=0:$${q} -g [$${g}]i64 \
 				> data/$${q}_$${g}.in; \
 		done \
 	done
