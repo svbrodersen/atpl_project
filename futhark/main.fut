@@ -25,6 +25,30 @@ def simulate [n] (seed: i32) (num_qubits: i64) (gates: [n]i64) (cQ: [n]i64) (tQ:
               (tableu, i + 1, rng, measurements, measurement_count)
   in (tableu, measurements)
 
+-- Note the first nobench input is the Teleportation mentioned in the paper
+-- ==
+-- entry: main
+-- nobench input {26i32 5i64 [1i64, 3, 3, 1, 0, 0, 3, 3, 3, 1, 3, 1] [1i64, 1, 0, 0, 0, 1, 0, 1, 4, 2, 3, 2] [0i64, 2, 1, 0, 0, 0, 3, 4, 2, 0, 2, 0]}
+-- notest compiled input@data/200_1000.in
+-- notest compiled input@data/200_10000.in
+-- notest compiled input@data/200_100000.in
+-- notest compiled input@data/200_1000000.in
+-- notest compiled input@data/400_1000.in
+-- notest compiled input@data/400_10000.in
+-- notest compiled input@data/400_100000.in
+-- notest compiled input@data/400_1000000.in
+-- notest compiled input@data/800_1000.in
+-- notest compiled input@data/800_10000.in
+-- notest compiled input@data/800_100000.in
+-- notest compiled input@data/800_1000000.in
+-- notest compiled input@data/1600_1000.in
+-- notest compiled input@data/1600_10000.in
+-- notest compiled input@data/1600_100000.in
+-- notest compiled input@data/1600_1000000.in
+-- notest compiled input@data/3200_1000.in
+-- notest compiled input@data/3200_10000.in
+-- notest compiled input@data/3200_100000.in
+-- notest compiled input@data/3200_1000000.in
 entry main [n] (seed: i32) (num_qubits: i64) (gates: [n]i64) (cQ: [n]i64) (tQ: [n]i64) : []i8 =
   let (_, measurements) = trace (simulate seed num_qubits gates cQ tQ)
   in measurements
