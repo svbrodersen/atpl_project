@@ -39,10 +39,10 @@ def simulate [n] (seed: i32) (num_qubits: i64) (gates: [n]i64) (cQ: [n]i64) (tQ:
 -- notest compiled input@data/1600_10000.in
 -- notest compiled input@data/3200_1000.in
 -- notest compiled input@data/3200_10000.in
--- notest compiled input@data/6400_100000.in
--- notest compiled input@data/6400_1000000.in
--- notest compiled input@data/12000_100000.in
--- notest compiled input@data/12000_1000000.in
+-- notest compiled input@data/6400_1000.in
+-- notest compiled input@data/6400_10000.in
+-- notest compiled input@data/12000_1000.in
+-- notest compiled input@data/12000_10000.in
 entry main [n] (seed: i32) (num_qubits: i64) (gates: [n]i64) (cQ: [n]i64) (tQ: [n]i64) : []i8 =
   let (_, measurements) = trace (simulate seed num_qubits gates cQ tQ)
   in measurements
