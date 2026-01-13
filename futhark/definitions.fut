@@ -137,7 +137,7 @@ def Measurement [n] (eng: rng_engine.rng) (tableu: *tab [n]) (a: i64) : (rng_eng
           -- Filter indices where x_ia == 1
           let filtered_is = filter (\i -> tmp1[i][a] == 1) (iota n)
           -- Compute all contributions in parallel using INITIAL tmp1 state
-          let contributions =
+          let (phases, x_vals, z_vals) =
             map (\i ->
                    let idx = i + n
                    let tot_sum =
@@ -156,15 +156,11 @@ def Measurement [n] (eng: rng_engine.rng) (tableu: *tab [n]) (a: i64) : (rng_eng
                 filtered_is
             |> unzip3
           -- XOR all contributions together
-          let (phases, x_vals, z_vals) = contributions
           let final_phase = reduce (^) 0 phases
-          let final_x = map (\j -> reduce (^) 0 (map (\arr -> arr[j]) x_vals)) (iota n)
-          let final_z = map (\j -> reduce (^) 0 (map (\arr -> arr[j]) z_vals)) (iota n)
+          let final_x = map (\col -> reduce (^) 0 col) (transpose x_vals)
+          let final_z = map (\col -> reduce (^) 0 col) (transpose z_vals)
           -- Update row max_idx with final values
-          let is2 =
-            map (\j -> (max_idx, j)) (iota n)
-            ++ map (\j -> (max_idx, j + n)) (iota n)
-            ++ [(max_idx, max_idx)]
-          let vs2 = final_x ++ final_z ++ [final_phase]
+          let is2 = map (\i -> (max_idx, i)) (iota (2 * n)) ++ [(max_idx, max_idx)]
+          let vs2 = ((final_x ++ final_z ++ [final_phase]) :> [2 * n + 1]i8)
           let tmp2 = scatter_2d tmp1 is2 vs2
           in (eng, tmp2, final_phase)
