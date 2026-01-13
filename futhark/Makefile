@@ -1,4 +1,5 @@
 datasets:
+	mkdir -p data
 	futhark dataset -g i32 --i64-bounds=200:200 -g i64 --i64-bounds=0:3 -g [1000]i64 --i64-bounds=0:200 -g [1000]i64 --i64-bounds=0:200 -g [1000]i64 > data/200_1000.in
 	futhark dataset -g i32 --i64-bounds=200:200 -g i64 --i64-bounds=0:3 -g [10000]i64 --i64-bounds=0:200 -g [10000]i64 --i64-bounds=0:200 -g [10000]i64 > data/200_10000.in
 	futhark dataset -g i32 --i64-bounds=200:200 -g i64 --i64-bounds=0:3 -g [100000]i64 --i64-bounds=0:200 -g [100000]i64 --i64-bounds=0:200 -g [100000]i64  > data/200_100000.in
