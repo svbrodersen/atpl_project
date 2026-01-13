@@ -1,0 +1,126 @@
+cabal-version:   3.4
+name:            hqp
+version:         0.1.0.0
+synopsis:        HQP language playground in Haskell
+license:         BSD-3-Clause
+license-file:    LICENSE
+author:          James Avery
+maintainer:      avery@diku.dk
+category:        Math
+build-type:      Simple
+extra-doc-files: CHANGELOG.md
+
+common warnings
+    ghc-options: -Wall -Wno-orphans -Wno-unused-imports
+
+
+common common-options
+    default-language: GHC2021    
+    default-extensions:
+        NoMonomorphismRestriction,
+        FlexibleContexts,
+        FlexibleInstances,
+        TypeFamilies,
+        TypeSynonymInstances,
+        BinaryLiterals,
+        PatternSynonyms,
+        ViewPatterns,
+        LambdaCase,
+        AllowAmbiguousTypes,
+        TypeApplications,
+        ScopedTypeVariables,
+        GeneralizedNewtypeDeriving,
+        OverloadedLists,
+        DataKinds,
+
+library core
+    import:   warnings, common-options
+    exposed-modules: 
+      HQP
+      HQP.QOp
+      -- QOp syntax definitions and Operator typeclass:
+      HQP.QOp.Syntax   
+      -- QOp program transformations for optimization and analysis:
+      HQP.QOp.Simplify 
+      HQP.QOp.HelperFunctions
+      -- HQP Semantics backend implementations:
+      HQP.QOp.MatrixSemantics     
+      HQP.QOp.TensorSemantics
+      HQP.QOp.StabilizerSemantics 
+      -- Pretty-printing HQP programs and representations:
+      HQP.PrettyPrint
+      HQP.PrettyPrint.PrettyOp
+      HQP.PrettyPrint.PrettyMatrix
+      -- Example quantum programs written in HQP:
+      Programs.QFT
+      Programs.QuantumAdder
+      Programs.RepeaterProtocol
+      --
+      HQP.QOp.GPU.Compile
+      HQP.QOp.GPU.RunFuthark
+
+    build-depends:  
+        base,
+        hmatrix,
+        random,
+        mtl,
+        array,
+        containers,
+        massiv,
+--        hasktorch,
+        --
+        vector
+    hs-source-dirs:   src
+
+common exe-common
+  hs-source-dirs: exe
+  build-depends:
+      base,
+      hmatrix,
+      vector,
+      hqp:core
+  ghc-options: -Wall
+
+executable NoCloning
+  import: exe-common
+  main-is: NoCloning.hs
+
+
+executable ProgramInversion
+  import: exe-common
+  main-is: ProgramInversion.hs
+  ghc-options:
+      -Wno-missing-signatures
+      -Wno-name-shadowing
+      -Wno-incomplete-uni-patterns
+
+executable YesTeleportation
+  import: exe-common
+  build-depends:
+    random
+  main-is: YesTeleportation.hs
+
+executable TestRepeater
+  import: exe-common
+  main-is: TestRepeater.hs
+  build-depends:
+    random
+  ghc-options:
+      -Wno-missing-signatures
+      -Wno-name-shadowing
+      -Wno-incomplete-uni-patterns
+
+executable Interface
+  import: exe-common
+  main-is: interface.hs
+  c-sources:
+      futhark-gen/hqp_gpu.c
+  include-dirs:
+      futhark-gen
+  extra-libraries:
+      OpenCL
+      m
+
+
+
+

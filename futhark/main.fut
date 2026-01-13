@@ -1,6 +1,6 @@
 import "definitions"
 
-def simulate [n] (seed: i32) (num_qubits: i64) (gates: [n]i64) (cQ: [n]i64) (tQ: [n]i64) : ([][]i8, []i8) =
+entry simulate [n] (seed: i32) (num_qubits: i64) (gates: [n]i64) (cQ: [n]i64) (tQ: [n]i64) : ([][]i8, []i8) =
   let zipped_gates = zip3 gates cQ tQ
   let num_measurements = reduce (+) 0 <| map (\(gate, _, _) -> if gate == 0 then 1 else 0) zipped_gates
   let (tableu, _, _, measurements, _) =
@@ -23,7 +23,7 @@ def simulate [n] (seed: i32) (num_qubits: i64) (gates: [n]i64) (cQ: [n]i64) (tQ:
          then (CNOT tableu control target, i + 1, rng, measurements, measurement_count)
          else -- do nothing
               (tableu, i + 1, rng, measurements, measurement_count)
-  in (tableu, measurements)
+  in (trace tableu, trace measurements)
 
 entry main [n] (seed: i32) (num_qubits: i64) (gates: [n]i64) (cQ: [n]i64) (tQ: [n]i64) : []i8 =
   let (_, measurements) = trace (simulate seed num_qubits gates cQ tQ)
