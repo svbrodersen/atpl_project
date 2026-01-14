@@ -121,11 +121,13 @@ executable Interface
       OpenCL
       m
 
-executable Benchmarking
+executable Benchmark
   import: exe-common
   main-is: benchmarking.hs
   build-depends:
-    random
+    random,
+    criterion,
+    deepseq
   ghc-options:
       -Wno-missing-signatures
       -Wno-name-shadowing

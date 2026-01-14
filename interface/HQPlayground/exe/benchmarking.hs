@@ -2,8 +2,15 @@ module Main where
 
 import HQP
 import qualified HQP.QOp.MatrixSemantics as MS
-import System.Environment (getArgs)
-import System.Random (mkStdGen, randoms, randomR)
+import Criterion.Main
+import System.Environment (getArgs, withArgs)
+import Numeric.LinearAlgebra (atIndex)
+import System.Random (mkStdGen, randoms)
+import Data.Complex (Complex)
+import Control.DeepSeq (NFData, rnf)
+
+instance NFData Step where
+    rnf x = seq x ()
 
 -- An single Clifford operation is defined as a tuple of 3 integers: (OperationCode, Qubit Number, Qubit Number 2)
 -- Opcodes are:
@@ -33,6 +40,46 @@ hAt qubit_num qubit1 = Id qubit1 ⊗ H ⊗ Id (qubit_num-qubit1-1)
 
 interpretOperations :: Int -> [OperationInput] -> Program
 interpretOperations qubit_num ops = map (interpretOperation qubit_num) ops
+
+readDataset :: String -> (Int, Int, [OperationInput])
+readDataset file =
+    let (line1 : line2 : line3 : line4 : line5 :_) = lines file
+        seed = read line1 :: Int
+        qubit_num = read line2 :: Int
+        opcodes = read line3 :: [Int]
+        qubit1s = read line4 :: [Int]
+        qubit2s = read line5 :: [Int]
+        operations = zip3 opcodes qubit1s qubit2s
+    in (seed, qubit_num, operations)
+
+
+runSimulation :: Program -> MS.StateT -> RNG -> Complex Double
+runSimulation prog psi rng = 
+    let (end_state, _, _) = MS.evalProg prog psi rng
+    in end_state `atIndex` (0,0) -- Force evaluation here
+
+
+setupEnvironment :: FilePath -> IO (Program, MS.StateT, RNG)
+setupEnvironment filename = do
+    file <- readFile filename
+    let (seed, qubit_num, operations) = readDataset file
+        program = interpretOperations qubit_num operations
+        starting_state = MS.ket (replicate qubit_num 0)
+        rng  = randoms (mkStdGen seed) :: [Double]
+    return (program, starting_state, rng)
+
+main :: IO ()
+main = do
+    args <- getArgs
+    case args of
+        [] -> putStrLn "Usage: cabal run benchmark-criterion -- <filename>"
+        (filename : critArgs) -> 
+            withArgs critArgs $ defaultMain [
+                bgroup "simulation" [
+                    env (setupEnvironment filename) $ \ ~(prog, psi, rng) ->
+                        bench filename $ whnf (\(p, s, r) -> runSimulation p s r) (prog, psi, rng)
+                ]
+            ]
 
 
 
