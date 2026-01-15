@@ -12,6 +12,13 @@ import Control.DeepSeq (NFData, rnf)
 instance NFData Step where
     rnf x = seq x ()
 
+-- Wrapper to prevent DeepSeq from traversing the infinite list
+newtype InfiniteRNG = InfiniteRNG [Double]
+
+-- Instance that does NOTHING when asked to evaluate deeply
+instance NFData InfiniteRNG where
+    rnf (InfiniteRNG x) = seq x ()
+
 -- An single Clifford operation is defined as a tuple of 3 integers: (OperationCode, Qubit Number, Qubit Number 2)
 -- Opcodes are:
 -- 0: Measurement, 1: Hadamard, 2: Phase, 3: CNOT
@@ -59,14 +66,14 @@ runSimulation prog psi rng =
     in end_state `atIndex` (0,0) -- Force evaluation here
 
 
-setupEnvironment :: FilePath -> IO (Program, MS.StateT, RNG)
+setupEnvironment :: FilePath -> IO (Program, MS.StateT, InfiniteRNG)
 setupEnvironment filename = do
     file <- readFile filename
     let (seed, qubit_num, operations) = readDataset file
         program = interpretOperations qubit_num operations
         starting_state = MS.ket (replicate qubit_num 0)
         rng  = randoms (mkStdGen seed) :: [Double]
-    return (program, starting_state, rng)
+    return (program, starting_state, InfiniteRNG rng)
 
 main :: IO ()
 main = do
@@ -76,7 +83,7 @@ main = do
         (filename : critArgs) -> 
             withArgs critArgs $ defaultMain [
                 bgroup "simulation" [
-                    env (setupEnvironment filename) $ \ ~(prog, psi, rng) ->
+                    env (setupEnvironment filename) $ \ ~(prog, psi, InfiniteRNG rng) ->
                         bench filename $ whnf (\(p, s, r) -> runSimulation p s r) (prog, psi, rng)
                 ]
             ]
