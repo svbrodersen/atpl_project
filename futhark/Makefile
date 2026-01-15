@@ -21,12 +21,11 @@ datasets:
 
 benchmark:
 	mkdir -p results
-	futhark benchmark --backend=cuda --json=results/results.json main.fut > results/result.out
+	futhark bench --backend=cuda --json=results/results.json main.fut > results/result.out
 
 futhark_comment:
 	@for n in $(NUM_QUBITS); do \
 		for m in $(NUM_GATES); do \
 				echo "-- notest compiled input @ data/$${n}_$${m}.in"; \
 			done \
-		done \
 	done
