@@ -6,14 +6,15 @@ NUM_GATES  := 1000 10000 100000 1000000
 datasets:
 	mkdir -p data
 	@for q in $(NUM_QUBITS); do \
+		midpoint=$$(($$q / 2)); \
 		for g in $(NUM_GATES); do \
 			echo "Generating data/$${q}_$${g}.in ..."; \
 			futhark dataset \
-				-g i32 \
-				--i64-bounds=$${q}:$${q} -g i64 \
-				--i64-bounds=0:3 -g [$${g}]i64 \
-				--i64-bounds=0:$${q} -g [$${g}]i64 \
-				--i64-bounds=0:$${q} -g [$${g}]i64 \
-				> data/$${q}_$${g}.in; \
+				-g i32 \  # random seed
+				--i64-bounds=$${q}:$${q} -g i64 \ # num_qubits
+				--i64-bounds=0:3 -g [$${g}]i64 \ # gate number
+				--i64-bounds=0:$${midpoint} -g [$${g}]i64 \ # only allow control qubit to be lower half of possible qubits
+				--i64-bounds=$${midpoint}:$${q} -g [$${g}]i64 \ # only allow target to be other half of qubits
+				> data/$${q}_$${g}.in; \ # Output to data file
 		done \
 	done
