@@ -6,15 +6,15 @@ NUM_GATES  := 10 100 1000 10000 100000
 datasets:
 	mkdir -p data
 	@for q in $(NUM_QUBITS); do \
+		set -x; \
 		midpoint=$$(($$q / 2)); \
 		max_val=$$(($$q - 1)); \
 		for g in $(NUM_GATES); do \
-			echo "Generating data/$${q}_$${g}.in ..."; \
 			futhark dataset \
 				-g i32 \
 				--i64-bounds=$${q}:$${q} -g i64 \
 				--i64-bounds=0:3 -g [$${g}]i64 \
-				--i64-bounds=0:$${midpoint} -g [$${g}]i64 \
+				--i64-bounds=0:$$((midpoint-1)) -g [$${g}]i64 \
 				--i64-bounds=$${midpoint}:$${max_val} -g [$${g}]i64 \
 				> data/$${q}_$${g}.in; \
 		done \
