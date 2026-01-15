@@ -7,6 +7,7 @@ datasets:
 	mkdir -p data
 	@for q in $(NUM_QUBITS); do \
 		midpoint=$$(($$q / 2)); \
+		max_val=$$(($$q - 1)) \
 		for g in $(NUM_GATES); do \
 			echo "Generating data/$${q}_$${g}.in ..."; \
 			futhark dataset \
@@ -14,7 +15,7 @@ datasets:
 				--i64-bounds=$${q}:$${q} -g i64 \
 				--i64-bounds=0:3 -g [$${g}]i64 \
 				--i64-bounds=0:$${midpoint} -g [$${g}]i64 \
-				--i64-bounds=$${midpoint}:$${q} -g [$${g}]i64 \
+				--i64-bounds=$${midpoint}:$${max_val} -g [$${g}]i64 \
 				> data/$${q}_$${g}.in; \
 		done \
 	done
