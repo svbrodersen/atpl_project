@@ -29,26 +29,76 @@ entry simulate [n] (seed: i32) (num_qubits: i64) (gates: [n]i64) (cQ: [n]i64) (t
 -- ==
 -- entry: main
 -- nobench input {26i32 5i64 [1i64, 3, 3, 1, 0, 0, 3, 3, 3, 1, 3, 1] [1i64, 1, 0, 0, 0, 1, 0, 1, 4, 2, 3, 2] [0i64, 2, 1, 0, 0, 0, 3, 4, 2, 0, 2, 0]}
--- notest compiled input@data/200_1000.in
--- notest compiled input@data/200_10000.in
--- notest compiled input@data/400_1000.in
--- notest compiled input@data/400_10000.in
--- notest compiled input@data/800_1000.in
--- notest compiled input@data/800_10000.in
--- notest compiled input@data/1600_1000.in
--- notest compiled input@data/1600_10000.in
--- notest compiled input@data/3200_1000.in
--- notest compiled input@data/3200_10000.in
--- notest compiled input@data/6400_1000.in
--- notest compiled input@data/6400_10000.in
--- notest compiled input@data/24000_1000.in
--- notest compiled input@data/24000_10000.in
--- notest compiled input@data/48000_1000.in
--- notest compiled input@data/48000_10000.in
--- notest compiled input@data/96000_1000.in
--- notest compiled input@data/96000_10000.in
--- notest compiled input@data/192000_1000.in
--- notest compiled input@data/192000_10000.in
+-- nobench input {2026i32 1i64 [1i64, 0, 0] [0i64, 0, 0] [0i64, 0, 0]}
+-- output {[1i8, 1]}
+-- nobench input {1i32 1i64 [1i64, 0, 0] [0i64, 0, 0] [0i64, 0, 0]}
+-- output {[0i8, 0]}
+-- notest compiled input @ data/200_10.in
+-- notest compiled input @ data/200_100.in
+-- notest compiled input @ data/200_1000.in
+-- notest compiled input @ data/200_10000.in
+-- notest compiled input @ data/200_100000.in
+-- notest compiled input @ data/400_10.in
+-- notest compiled input @ data/400_100.in
+-- notest compiled input @ data/400_1000.in
+-- notest compiled input @ data/400_10000.in
+-- notest compiled input @ data/400_100000.in
+-- notest compiled input @ data/800_10.in
+-- notest compiled input @ data/800_100.in
+-- notest compiled input @ data/800_1000.in
+-- notest compiled input @ data/800_10000.in
+-- notest compiled input @ data/800_100000.in
+-- notest compiled input @ data/1600_10.in
+-- notest compiled input @ data/1600_100.in
+-- notest compiled input @ data/1600_1000.in
+-- notest compiled input @ data/1600_10000.in
+-- notest compiled input @ data/1600_100000.in
+-- notest compiled input @ data/3200_10.in
+-- notest compiled input @ data/3200_100.in
+-- notest compiled input @ data/3200_1000.in
+-- notest compiled input @ data/3200_10000.in
+-- notest compiled input @ data/3200_100000.in
+-- notest compiled input @ data/6400_10.in
+-- notest compiled input @ data/6400_100.in
+-- notest compiled input @ data/6400_1000.in
+-- notest compiled input @ data/6400_10000.in
+-- notest compiled input @ data/6400_100000.in
+-- notest compiled input @ data/12000_10.in
+-- notest compiled input @ data/12000_100.in
+-- notest compiled input @ data/12000_1000.in
+-- notest compiled input @ data/12000_10000.in
+-- notest compiled input @ data/12000_100000.in
+-- notest compiled input @ data/24000_10.in
+-- notest compiled input @ data/24000_100.in
+-- notest compiled input @ data/24000_1000.in
+-- notest compiled input @ data/24000_10000.in
+-- notest compiled input @ data/24000_100000.in
+-- notest compiled input @ data/48000_10.in
+-- notest compiled input @ data/48000_100.in
+-- notest compiled input @ data/48000_1000.in
+-- notest compiled input @ data/48000_10000.in
+-- notest compiled input @ data/48000_100000.in
+-- notest compiled input @ data/96000_10.in
+-- notest compiled input @ data/96000_100.in
+-- notest compiled input @ data/96000_1000.in
+-- notest compiled input @ data/96000_10000.in
+-- notest compiled input @ data/96000_100000.in
 entry main [n] (seed: i32) (num_qubits: i64) (gates: [n]i64) (cQ: [n]i64) (tQ: [n]i64) : []i8 =
   let (_, measurements) = trace (simulate seed num_qubits gates cQ tQ)
   in measurements
+
+-- Simple function without the seed
+-- ==
+-- entry: simple
+-- nobench input {2i64 [0i64, 0] [0i64, 1] [0i64, 0]}
+-- output {[0i8, 0]}
+-- nobench input {2i64 [3i64, 0, 0] [0i64, 0, 1] [1i64, 0, 0]}
+-- output {[0i8, 0]}
+-- nobench input {2i64 [3i64, 0, 0] [1i64, 0, 1] [0i64, 0, 0]}
+-- output {[0i8, 0]}
+-- nobench input {1i64 [1i64, 2, 2, 1, 0] [0i64, 0, 0, 0, 0] [0i64, 0, 0, 0, 0]}
+-- output {[1i8]}
+-- nobench input {2i64 [1i64, 2, 2, 1, 3, 0] [0i64, 0, 0, 0, 0, 1] [0i64, 0, 0, 0, 1, 0]}
+-- output {[1i8]}
+entry simple [n] (num_qubits: i64) (gates: [n]i64) (cQ: [n]i64) (tQ: [n]i64) : []i8 =
+  main 2026 num_qubits gates cQ tQ
