@@ -136,18 +136,6 @@ def Measurement [n] (eng: rng_engine.rng) (tableu: *tab [n]) (a: i64) : (rng_eng
           let tmp1 = scatter_2d tableu is1 vs1
           -- Filter indices where x_ia == 1
           let filtered_is = filter (\i -> tmp1[i][a] == 1) (iota n)
-<<<<<<< HEAD
-
-          -- Create a new tableu (tmp2) by sequentially updating the scratch row with rowsum of each row
-          let tmp2 =
-            loop tmp3 = tmp1 for i in filtered_is do 
-              let (is2, vs2) = rowsum tmp3 max_idx (i+n)
-              in scatter_2d tmp3 is2 vs2
-
-          let (is2, vs2) = map (\i -> rowsum tmp1 (max_idx) (i + n)) (filtered_is) |> unzip
-          let tmp2 = scatter_2d tmp1 (is2 |> flatten) (vs2 |> flatten)
-          in (eng, tmp2, tmp2[max_idx][max_idx])
-=======
           -- Compute all contributions in parallel using INITIAL tmp1 state
           let (phases, x_vals, z_vals) =
             map (\i ->
@@ -176,4 +164,3 @@ def Measurement [n] (eng: rng_engine.rng) (tableu: *tab [n]) (a: i64) : (rng_eng
           let vs2 = ((final_x ++ final_z ++ [final_phase]) :> [2 * n + 1]i8)
           let tmp2 = scatter_2d tmp1 is2 vs2
           in (eng, tmp2, final_phase)
->>>>>>> main
