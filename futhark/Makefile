@@ -20,7 +20,8 @@ datasets:
 	done
 
 benchmark:
-	futhark benchmark --backend=cuda main.fut > result.out
+	mkdir -p results
+	futhark benchmark --backend=cuda --json=results/results.json main.fut > results/result.out
 
 futhark_comment:
 	@for n in $(NUM_QUBITS); do \
