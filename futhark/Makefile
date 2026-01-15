@@ -7,7 +7,7 @@ datasets:
 	mkdir -p data
 	@for q in $(NUM_QUBITS); do \
 		midpoint=$$(($$q / 2)); \
-		max_val=$$(($$q - 1)) \
+		max_val=$$(($$q - 1)); \
 		for g in $(NUM_GATES); do \
 			echo "Generating data/$${q}_$${g}.in ..."; \
 			futhark dataset \
