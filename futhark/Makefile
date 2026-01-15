@@ -10,12 +10,12 @@ datasets:
 		for g in $(NUM_GATES); do \
 			echo "Generating data/$${q}_$${g}.in ..."; \
 			futhark dataset \
-				-g i32 \  # random seed
-				--i64-bounds=$${q}:$${q} -g i64 \ # num_qubits
-				--i64-bounds=0:3 -g [$${g}]i64 \ # gate number
-				--i64-bounds=0:$${midpoint} -g [$${g}]i64 \ # only allow control qubit to be lower half of possible qubits
-				--i64-bounds=$${midpoint}:$${q} -g [$${g}]i64 \ # only allow target to be other half of qubits
-				> data/$${q}_$${g}.in; \ # Output to data file
+				-g i32 \
+				--i64-bounds=$${q}:$${q} -g i64 \
+				--i64-bounds=0:3 -g [$${g}]i64 \
+				--i64-bounds=0:$${midpoint} -g [$${g}]i64 \
+				--i64-bounds=$${midpoint}:$${q} -g [$${g}]i64 \
+				> data/$${q}_$${g}.in; \
 		done \
 	done
 
