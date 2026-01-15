@@ -33,24 +33,56 @@ def simulate [n] (seed: i32) (num_qubits: i64) (gates: [n]i64) (cQ: [n]i64) (tQ:
 -- output {[1i8, 1]}
 -- nobench input {1i32 1i64 [1i64, 0, 0] [0i64, 0, 0] [0i64, 0, 0]}
 -- output {[0i8, 0]}
--- notest compiled input@data/200_1000.in
--- notest compiled input@data/200_10000.in
--- notest compiled input@data/400_1000.in
--- notest compiled input@data/400_10000.in
--- notest compiled input@data/800_1000.in
--- notest compiled input@data/800_10000.in
--- notest compiled input@data/1600_1000.in
--- notest compiled input@data/1600_10000.in
--- notest compiled input@data/3200_1000.in
--- notest compiled input@data/3200_10000.in
--- notest compiled input@data/6400_1000.in
--- notest compiled input@data/6400_10000.in
--- notest compiled input@data/24000_1000.in
--- notest compiled input@data/24000_10000.in
--- notest compiled input@data/48000_1000.in
--- notest compiled input@data/48000_10000.in
--- notest compiled input@data/96000_1000.in
--- notest compiled input@data/96000_10000.in
+-- notest compiled input @ data/200_10.in
+-- notest compiled input @ data/200_100.in
+-- notest compiled input @ data/200_1000.in
+-- notest compiled input @ data/200_10000.in
+-- notest compiled input @ data/200_100000.in
+-- notest compiled input @ data/400_10.in
+-- notest compiled input @ data/400_100.in
+-- notest compiled input @ data/400_1000.in
+-- notest compiled input @ data/400_10000.in
+-- notest compiled input @ data/400_100000.in
+-- notest compiled input @ data/800_10.in
+-- notest compiled input @ data/800_100.in
+-- notest compiled input @ data/800_1000.in
+-- notest compiled input @ data/800_10000.in
+-- notest compiled input @ data/800_100000.in
+-- notest compiled input @ data/1600_10.in
+-- notest compiled input @ data/1600_100.in
+-- notest compiled input @ data/1600_1000.in
+-- notest compiled input @ data/1600_10000.in
+-- notest compiled input @ data/1600_100000.in
+-- notest compiled input @ data/3200_10.in
+-- notest compiled input @ data/3200_100.in
+-- notest compiled input @ data/3200_1000.in
+-- notest compiled input @ data/3200_10000.in
+-- notest compiled input @ data/3200_100000.in
+-- notest compiled input @ data/6400_10.in
+-- notest compiled input @ data/6400_100.in
+-- notest compiled input @ data/6400_1000.in
+-- notest compiled input @ data/6400_10000.in
+-- notest compiled input @ data/6400_100000.in
+-- notest compiled input @ data/12000_10.in
+-- notest compiled input @ data/12000_100.in
+-- notest compiled input @ data/12000_1000.in
+-- notest compiled input @ data/12000_10000.in
+-- notest compiled input @ data/12000_100000.in
+-- notest compiled input @ data/24000_10.in
+-- notest compiled input @ data/24000_100.in
+-- notest compiled input @ data/24000_1000.in
+-- notest compiled input @ data/24000_10000.in
+-- notest compiled input @ data/24000_100000.in
+-- notest compiled input @ data/48000_10.in
+-- notest compiled input @ data/48000_100.in
+-- notest compiled input @ data/48000_1000.in
+-- notest compiled input @ data/48000_10000.in
+-- notest compiled input @ data/48000_100000.in
+-- notest compiled input @ data/96000_10.in
+-- notest compiled input @ data/96000_100.in
+-- notest compiled input @ data/96000_1000.in
+-- notest compiled input @ data/96000_10000.in
+-- notest compiled input @ data/96000_100000.in
 entry main [n] (seed: i32) (num_qubits: i64) (gates: [n]i64) (cQ: [n]i64) (tQ: [n]i64) : []i8 =
   let (_, measurements) = trace (simulate seed num_qubits gates cQ tQ)
   in measurements
