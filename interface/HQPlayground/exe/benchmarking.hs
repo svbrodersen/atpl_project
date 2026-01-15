@@ -48,9 +48,17 @@ hAt qubit_num qubit1 = Id qubit1 ⊗ H ⊗ Id (qubit_num-qubit1-1)
 interpretOperations :: Int -> [OperationInput] -> Program
 interpretOperations qubit_num ops = map (interpretOperation qubit_num) ops
 
+removeSuffixes :: String -> String
+removeSuffixes [] = []
+removeSuffixes ('i':'3':'2':xs) = removeSuffixes xs
+removeSuffixes ('i':'6':'4':xs) = removeSuffixes xs
+removeSuffixes (x:xs) = x : removeSuffixes xs
+
+
 readDataset :: String -> (Int, Int, [OperationInput])
 readDataset file =
-    let (line1 : line2 : line3 : line4 : line5 :_) = lines file
+    let filteredFile = removeSuffixes file
+        (line1 : line2 : line3 : line4 : line5 :_) = lines filteredFile
         seed = read line1 :: Int
         qubit_num = read line2 :: Int
         opcodes = read line3 :: [Int]
