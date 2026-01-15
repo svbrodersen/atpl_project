@@ -1,5 +1,7 @@
 import "definitions"
 
+
+
 def simulate [n] (seed: i32) (num_qubits: i64) (gates: [n]i64) (cQ: [n]i64) (tQ: [n]i64) : ([][]i8, []i8) =
   let zipped_gates = zip3 gates cQ tQ
   let num_measurements = reduce (+) 0 <| map (\(gate, _, _) -> if gate == 0 then 1 else 0) zipped_gates
@@ -28,7 +30,6 @@ def simulate [n] (seed: i32) (num_qubits: i64) (gates: [n]i64) (cQ: [n]i64) (tQ:
 -- Note the first nobench input is the Teleportation mentioned in the paper
 -- ==
 -- entry: main
--- nobench input {26i32 5i64 [1i64, 3, 3, 1, 0, 0, 3, 3, 3, 1, 3, 1] [1i64, 1, 0, 0, 0, 1, 0, 1, 4, 2, 3, 2] [0i64, 2, 1, 0, 0, 0, 3, 4, 2, 0, 2, 0]}
 -- nobench input {2026i32 1i64 [1i64, 0, 0] [0i64, 0, 0] [0i64, 0, 0]}
 -- output {[1i8, 1]}
 -- nobench input {1i32 1i64 [1i64, 0, 0] [0i64, 0, 0] [0i64, 0, 0]}
@@ -84,7 +85,7 @@ def simulate [n] (seed: i32) (num_qubits: i64) (gates: [n]i64) (cQ: [n]i64) (tQ:
 -- notest compiled input @ data/96000_10000.in
 -- notest compiled input @ data/96000_100000.in
 entry main [n] (seed: i32) (num_qubits: i64) (gates: [n]i64) (cQ: [n]i64) (tQ: [n]i64) : []i8 =
-  let (_, measurements) = trace (simulate seed num_qubits gates cQ tQ)
+  let (_, measurements) = simulate seed num_qubits gates cQ tQ
   in measurements
 
 -- Simple function without the seed
@@ -102,3 +103,16 @@ entry main [n] (seed: i32) (num_qubits: i64) (gates: [n]i64) (cQ: [n]i64) (tQ: [
 -- output {[1i8]}
 entry simple [n] (num_qubits: i64) (gates: [n]i64) (cQ: [n]i64) (tQ: [n]i64) : []i8 =
   main 2026 num_qubits gates cQ tQ
+
+
+def teleportation (seed: i32) : ([][]i8, []i8) = 
+  let (tg, tc, tt) =  ([1i64, 3, 3, 1, 0, 0, 3, 3, 3, 1, 3, 1], [1i64, 1, 0, 0, 0, 1, 0, 1, 4, 2, 3, 2], [0i64, 2, 1, 0, 0, 0, 3, 4, 2, 0, 2, 0])
+  let (gates, cQ, tQ) = ([1] ++ tg ++ [0], [0] ++ tc ++ [4], [0] ++ tt ++ [0])
+  in simulate seed 5 gates cQ tQ 
+
+def estimate_teleportation (n: i64) : f64 = 
+  let measurement seed = 
+    let tmp = teleportation (i32.i64 seed) |> (.1)
+    in tmp[2]
+  let mean = map (\i -> f64.i8 <| measurement i) (iota n) |> reduce (+) 0 |> (/ (f64.i64 n))
+  in mean

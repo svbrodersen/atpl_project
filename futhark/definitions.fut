@@ -129,8 +129,7 @@ def Measurement [n] (eng: rng_engine.rng) (tableu: *tab [n]) (a: i64) : (rng_eng
                 (iota (size n))
           let tmp3 = scatter_2d tmp2 is3 vs3
           in (eng1, tmp3, rand_val)
-     else -- **PARALLELIZED DETERMINISTIC CASE**
-          let max_idx = (size n) - 1
+     else let max_idx = (size n) - 1
           let is1 = map (\i -> (max_idx, i)) (iota (size n))
           let vs1 = replicate (size n) 0
           let tmp1 = scatter_2d tableu is1 vs1
