@@ -87,14 +87,20 @@ def Phase [n] (tableu: *tab [n]) (a: i64) : *tab [n] =
   in scatter_2d tableu indices values
 
 def Measurement [n] (eng: rng_engine.rng) (tableu: *tab [n]) (a: i64) : (rng_engine.rng, *tab [n], t) =
-  let (p, xpa) = reduce_comm (\(p1, xp1a) (p2, xp2a) -> 
-    if xp1a == 1 && xp2a == 1 then
-      if p1 <= p2 then (p1, xp1a)
-      else (p2, xp2a)
-    else if xp1a == 1 then (p1, xp1a)
-    else if xp2a == 1 then (p2, xp2a)
-    else (0, 0)
-  ) (0, 0) <| map (\p -> (p, tableu[p][a])) (n...2 * n - 1) -- both inclusive 
+  let (p, xpa) =
+    reduce_comm (\(p1, xp1a) (p2, xp2a) ->
+                   if xp1a == 1 && xp2a == 1
+                   then if p1 <= p2
+                        then (p1, xp1a)
+                        else (p2, xp2a)
+                   else if xp1a == 1
+                   then (p1, xp1a)
+                   else if xp2a == 1
+                   then (p2, xp2a)
+                   else (0, 0))
+                (0, 0)
+    <| map (\p -> (p, tableu[p][a])) (n...2 * n - 1)
+  -- both inclusive
   in if xpa == 1
      then -- Call rowsum for all i in {1...2n}
           let filtered_is = filter (\i -> i != p && tableu[i][a] == 1) (iota (2 * n))
@@ -123,14 +129,37 @@ def Measurement [n] (eng: rng_engine.rng) (tableu: *tab [n]) (a: i64) : (rng_eng
                 (iota (size n))
           let tmp3 = scatter_2d tmp2 is3 vs3
           in (eng1, tmp3, rand_val)
-     else -- set (2n + 1) st row to be identically 0
-          let max_idx = (size n) - 1
+     else let max_idx = (size n) - 1
           let is1 = map (\i -> (max_idx, i)) (iota (size n))
-          let vs1 = replicate (size (n)) 0
+          let vs1 = replicate (size n) 0
           let tmp1 = scatter_2d tableu is1 vs1
-          -- call rowsum 2n+1, i+n
+          -- Filter indices where x_ia == 1
           let filtered_is = filter (\i -> tmp1[i][a] == 1) (iota n)
-
-          let (is2, vs2) = map (\i -> rowsum tmp1 (max_idx) (i + n)) (filtered_is) |> unzip
-          let tmp2 = scatter_2d tmp1 (is2 |> flatten) (vs2 |> flatten)
-          in (eng, tmp2, tmp2[max_idx][max_idx])
+          -- Compute all contributions in parallel using INITIAL tmp1 state
+          let (phases, x_vals, z_vals) =
+            map (\i ->
+                   let idx = i + n
+                   let tot_sum =
+                     map (\j ->
+                            g tmp1[idx][j]
+                              tmp1[idx][j + n]
+                              tmp1[max_idx][j]
+                              tmp1[max_idx][j + n])
+                         (iota n)
+                     |> reduce (+) 0
+                   let res = (2 * tmp1[max_idx][max_idx] + 2 * tmp1[idx][max_idx] + tot_sum) % 4
+                   let phase_contrib = if res == 0 then 0 else 1
+                   let x_contribs = map (\j -> tmp1[idx][j]) (iota n)
+                   let z_contribs = map (\j -> tmp1[idx][n + j]) (iota n)
+                   in (phase_contrib, x_contribs, z_contribs))
+                filtered_is
+            |> unzip3
+          -- XOR all contributions together
+          let final_phase = reduce (^) 0 phases
+          let final_x = map (\col -> reduce (^) 0 col) (transpose x_vals)
+          let final_z = map (\col -> reduce (^) 0 col) (transpose z_vals)
+          -- Update row max_idx with final values
+          let is2 = map (\i -> (max_idx, i)) (iota (2 * n)) ++ [(max_idx, max_idx)]
+          let vs2 = ((final_x ++ final_z ++ [final_phase]) :> [2 * n + 1]i8)
+          let tmp2 = scatter_2d tmp1 is2 vs2
+          in (eng, tmp2, final_phase)
