@@ -120,7 +120,6 @@ executable Interface
   extra-libraries:
       OpenCL
       m
-
-
-
-
+      cuda
+      nvrtc
+      cudart
