@@ -51,13 +51,15 @@ if __name__ == "__main__":
     
     backend = AerSimulator()
     if 'GPU' in backend.available_devices():
+        print("Running GPU")
         backend = AerSimulator(method='statevector', device='GPU')
     else:
+        print("Running CPU")
         backend = AerSimulator(method='statevector', device='CPU')
 
     qc = transpile(qc, backend)
 
-    result = runner.bench_func(
+    runner.bench_func(
         args.filename,      
         run_simulation,    
         backend, qc, seed  
