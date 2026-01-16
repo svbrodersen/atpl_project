@@ -48,12 +48,16 @@ if __name__ == "__main__":
     seed, qubit_num, operations = read_dataset(args.filename)
 
     qc = create_circuit(seed, qubit_num, operations)
-
-    backend = AerSimulator(method='statevector')
+    
+    backend = AerSimulator()
+    if 'GPU' in backend.available_devices():
+        backend = AerSimulator(method='statevector', device='GPU')
+    else:
+        backend = AerSimulator(method='statevector', device='CPU')
 
     qc = transpile(qc, backend)
 
-    runner.bench_func(
+    result = runner.bench_func(
         args.filename,      
         run_simulation,    
         backend, qc, seed  
