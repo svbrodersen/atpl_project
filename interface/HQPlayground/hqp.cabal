@@ -139,3 +139,19 @@ executable Benchmark
       -Wno-missing-signatures
       -Wno-name-shadowing
       -Wno-incomplete-uni-patterns
+
+executable HQPFut
+  import: exe-common
+  main-is: HQPFut.hs
+  c-sources:
+      futhark-gen/hqp_gpu.c
+  include-dirs:
+      futhark-gen
+  extra-libraries:
+      OpenCL
+      m
+      cuda
+      nvrtc
+      cudart
+  build-depends:
+      vector

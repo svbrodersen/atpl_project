@@ -10,6 +10,8 @@ NUM_GATES  = [10, 100, 1000, 10000]
 
 # SAFETY LIMIT: Stop simulation if qubits > this (prevents RAM crashes)
 MAX_SIM_QUBITS = 26 
+MAX_CPU_QUBITS = 10
+MAX_CPU_GATES  = 100
 
 # OUTPUT FILENAME
 FINAL_RESULTS_CSV = "results/results_combined.csv"
@@ -137,13 +139,22 @@ def main():
                 print(f"\n>>> Benchmarking: {q} Qubits, {g} Gates")
 
                 # Run benchmarks
-                h_time = run_haskell(filepath)
+                if q >= MAX_CPU_QUBITS and g >= MAX_CPU_GATES:
+                    print(f"   [Skip] Both Qubits and Gates exceed CPU limits ({MAX_CPU_QUBITS} Q, {MAX_CPU_GATES} G).")
+                    h_time = None
+                elif q > MAX_CPU_QUBITS:
+                    print(f"   [Skip] Qubits exceed CPU limit ({MAX_CPU_QUBITS} Q).")
+                    h_time = None
+                else:
+                    h_time = run_haskell(filepath)
                 q_time = run_qiskit(filepath)
 
                 # Save immediately if we have data
-                if h_time is not None or q_time is not None:
-                    writer.writerow([q, g, h_time, q_time])
-                    f.flush()
+                # if h_time is not None or q_time is not None:
+                #     writer.writerow([q, g, h_time, q_time])
+                #     f.flush()
+                writer.writerow([q, g, h_time, q_time])
+                f.flush()
 
     print(f"\n=== Benchmark Complete ===")
 
