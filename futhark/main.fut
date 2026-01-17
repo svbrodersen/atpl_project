@@ -28,10 +28,10 @@ entry simulate [n] (seed: i32) (num_qubits: i64) (gates: [n]i64) (cQ: [n]i64) (t
 -- Note the first nobench input is the Teleportation mentioned in the paper
 -- ==
 -- entry: main
--- nobench input {2026i32 1i64 [1i64, 0, 0] [0i64, 0, 0] [0i64, 0, 0]}
--- output {[1i8, 1]}
--- nobench input {1i32 1i64 [1i64, 0, 0] [0i64, 0, 0] [0i64, 0, 0]}
--- output {[0i8, 0]}
+-- nobench input {2026i32 1i64 [1i64, 0i64, 0i64] [0i64, 0i64, 0i64] [0i64, 0i64, 0i64]}
+-- output {[1i8, 1i8]}
+-- nobench input {1i32 1i64 [1i64, 0i64, 0i64] [0i64, 0i64, 0i64] [0i64, 0i64, 0i64]}
+-- output {[0i8, 0i8]}
 -- notest compiled input @ data/200_10.in
 -- notest compiled input @ data/200_100.in
 -- notest compiled input @ data/200_1000.in
@@ -89,15 +89,15 @@ entry main [n] (seed: i32) (num_qubits: i64) (gates: [n]i64) (cQ: [n]i64) (tQ: [
 -- Simple function without the seed
 -- ==
 -- entry: simple
--- nobench input {2i64 [0i64, 0] [0i64, 1] [0i64, 0]}
--- output {[0i8, 0]}
--- nobench input {2i64 [3i64, 0, 0] [0i64, 0, 1] [1i64, 0, 0]}
--- output {[0i8, 0]}
--- nobench input {2i64 [3i64, 0, 0] [1i64, 0, 1] [0i64, 0, 0]}
--- output {[0i8, 0]}
--- nobench input {1i64 [1i64, 2, 2, 1, 0] [0i64, 0, 0, 0, 0] [0i64, 0, 0, 0, 0]}
+-- nobench input {2i64 [0i64, 0i64] [0i64, 1i64] [0i64, 0i64]}
+-- output {[0i8, 0i8]}
+-- nobench input {2i64 [3i64, 0i64, 0i64] [0i64, 0i64, 1i64] [1i64, 0i64, 0i64]}
+-- output {[0i8, 0i8]}
+-- nobench input {2i64 [3i64, 0i64, 0i64] [1i64, 0i64, 1i64] [0i64, 0i64, 0i64]}
+-- output {[0i8, 0i8]}
+-- nobench input {1i64 [1i64, 2i64, 2i64, 1i64, 0i64] [0i64, 0i64, 0i64, 0i64, 0i64] [0i64, 0i64, 0i64, 0i64, 0i64]}
 -- output {[1i8]}
--- nobench input {2i64 [1i64, 2, 2, 1, 3, 0] [0i64, 0, 0, 0, 0, 1] [0i64, 0, 0, 0, 1, 0]}
+-- nobench input {2i64 [1i64, 2i64, 2i64, 1i64, 3i64, 0i64] [0i64, 0i64, 0i64, 0i64, 0i64, 1i64] [0i64, 0i64, 0i64, 0i64, 1i64, 0i64]}
 -- output {[1i8]}
 entry simple [n] (num_qubits: i64) (gates: [n]i64) (cQ: [n]i64) (tQ: [n]i64) : []i8 =
   main 2026 num_qubits gates cQ tQ
