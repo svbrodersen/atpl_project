@@ -32,6 +32,36 @@ entry simulate [n] (seed: i32) (num_qubits: i64) (gates: [n]i64) (cQ: [n]i64) (t
 -- output {[1i8, 1i8]}
 -- nobench input {1i32 1i64 [1i64, 0i64, 0i64] [0i64, 0i64, 0i64] [0i64, 0i64, 0i64]}
 -- output {[0i8, 0i8]}
+-- notest compiled input @ data/2_10.in
+-- notest compiled input @ data/2_100.in
+-- notest compiled input @ data/2_1000.in
+-- notest compiled input @ data/2_10000.in
+-- notest compiled input @ data/2_100000.in
+-- notest compiled input @ data/5_10.in
+-- notest compiled input @ data/5_100.in
+-- notest compiled input @ data/5_1000.in
+-- notest compiled input @ data/5_10000.in
+-- notest compiled input @ data/5_100000.in
+-- notest compiled input @ data/10_10.in
+-- notest compiled input @ data/10_100.in
+-- notest compiled input @ data/10_1000.in
+-- notest compiled input @ data/10_10000.in
+-- notest compiled input @ data/10_100000.in
+-- notest compiled input @ data/15_10.in
+-- notest compiled input @ data/15_100.in
+-- notest compiled input @ data/15_1000.in
+-- notest compiled input @ data/15_10000.in
+-- notest compiled input @ data/15_100000.in
+-- notest compiled input @ data/20_10.in
+-- notest compiled input @ data/20_100.in
+-- notest compiled input @ data/20_1000.in
+-- notest compiled input @ data/20_10000.in
+-- notest compiled input @ data/20_100000.in
+-- notest compiled input @ data/25_10.in
+-- notest compiled input @ data/25_100.in
+-- notest compiled input @ data/25_1000.in
+-- notest compiled input @ data/25_10000.in
+-- notest compiled input @ data/25_100000.in
 -- notest compiled input @ data/200_10.in
 -- notest compiled input @ data/200_100.in
 -- notest compiled input @ data/200_1000.in
