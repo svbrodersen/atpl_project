@@ -30,3 +30,7 @@ futhark_comment:
 				echo "-- notest compiled input @ data/$${n}_$${m}.in"; \
 			done \
 	done
+
+interface:
+	futhark c --library main.fut -o ../interface/HQPlayground/futhark-gen/hqp_gpu
+	cd ../interface/HQPlayground/; cabal build; cabal run Interface
