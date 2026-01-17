@@ -58,6 +58,9 @@ library core
       Programs.QFT
       Programs.QuantumAdder
       Programs.RepeaterProtocol
+      --
+      HQP.QOp.GPU.Compile
+      HQP.QOp.GPU.RunFuthark
 
     build-depends:  
         base,
@@ -122,6 +125,8 @@ executable Interface
       cuda
       nvrtc
       cudart
+  build-depends:
+      vector
 
 executable Benchmark
   import: exe-common

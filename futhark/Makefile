@@ -33,4 +33,4 @@ futhark_comment:
 
 interface:
 	futhark cuda --library main.fut -o ../interface/HQPlayground/futhark-gen/hqp_gpu
-	cd ../interface/HQPlayground/; cabal build; cabal run Interface
+	cd ../interface/HQPlayground/; cabal clean; cabal build; cabal run Interface
