@@ -9,6 +9,7 @@ import System.Random (mkStdGen, randoms)
 import Data.Complex (Complex)
 import Control.DeepSeq (NFData, rnf)
 
+-- Wrapper because no need to evaluate steps fully as these are only used in the setup phase, not benchmarking phase
 instance NFData Step where
     rnf x = seq x ()
 
