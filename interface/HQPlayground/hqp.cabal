@@ -119,6 +119,9 @@ executable Interface
   extra-libraries:
       OpenCL
       m
+      cuda
+      nvrtc
+      cudart
 
 executable Benchmark
   import: exe-common
