@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 futhark/data
 dist
 dist-*
@@ -23,8 +22,6 @@ cabal.project.local
 cabal.project.local~
 .HTF/
 .ghc.environment.*
-=======
 interface/HQPlayground/futhark-gen/hqp_gpu.json
 interface/HQPlayground/futhark-gen/hqp_gpu.h
 /futhark/data
->>>>>>> Interface
