@@ -165,6 +165,7 @@ instance HilbertSpace CMat where
     
     (.*) = scale
     (.+) a b = a+b
+    (.-) a b = a-b
 
     -- | inner a b is the usual dot product, with the adjoint coefficients complex conjugated
     inner a b = let 
@@ -201,6 +202,15 @@ measureProjection n k v' = let
     in
         evalOp(Id k) ⊗ p ⊗ evalOp (Id (n-k-1))
 
+-- Automatic conversion to/from CMat for other types
+class CMatable w where
+    toCMat   :: w -> CMat
+    fromCMat :: CMat -> w
+
+instance CMatable CMat where
+    toCMat   = id
+    fromCMat = id
+
 
 -- Auxiliary definitions -- move to internal module?
 tol :: RealT
@@ -227,7 +237,7 @@ realMI = map (map (floor.realPart)) . toLists
 imagMI = map (map (floor.imagPart)) . toLists 
 
 {-| sparseMat takes an (m >< n) matrix and returns ((m,n), nonzeros) where nonzeros is a list of every nonzero index paired with the corresponding value. -}
-sparseMat :: CMat -> ((Int,Int), [((Int,Int),ComplexT)])
+sparseMat :: CMat -> SparseMat
 sparseMat mat = 
     let 
         (m,n) = (rows mat, cols mat)
@@ -237,9 +247,11 @@ sparseMat mat =
             (1,_) -> [((0,j), mat `atIndex` (0,j)) | j <- [0..n-1]]
             _     -> error $ show "Use sparseOp for operators"
     in
-        ((m,n), filter (\(_,v) -> (magnitude v > tol)) full_list)
+        SparseMat ((m,n), filter (\(_,v) -> (magnitude v > tol)) full_list)
 
 
+instance Convertible CMat SparseMat where
+    to mat = sparseMat mat
 
-
-
+    from (SparseMat ((m,n), nonzeros)) = error "CMat from SparseMat: not implemented yet."
+        

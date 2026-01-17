@@ -5,8 +5,8 @@ import json
 
 # ================= CONFIGURATION =================
 # Must match your Makefile
-NUM_QUBITS = [5, 200, 400, 800, 1600, 3200, 6400, 12000, 24000, 48000, 96000]
-NUM_GATES  = [10, 100, 1000, 10000, 100000]
+NUM_QUBITS = [2, 5, 10, 15, 20, 25]
+NUM_GATES  = [10, 100, 1000, 10000]
 
 # SAFETY LIMIT: Stop simulation if qubits > this (prevents RAM crashes)
 MAX_SIM_QUBITS = 26 

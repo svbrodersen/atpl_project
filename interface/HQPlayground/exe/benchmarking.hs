@@ -92,7 +92,7 @@ main = do
             withArgs critArgs $ defaultMain [
                 bgroup "simulation" [
                     env (setupEnvironment filename) $ \ ~(prog, psi, InfiniteRNG rng) ->
-                        bench filename $ whnf (\(p, s, r) -> runSimulation p s r) (prog, psi, rng)
+                        bench filename $ nf (\(p, s, r) -> runSimulation p s r) (prog, psi, rng)
                 ]
             ]
 

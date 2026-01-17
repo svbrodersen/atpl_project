@@ -74,6 +74,7 @@ class (Scalar v ~ Complex (Realnum v), Floating (Realnum v), HasTensorProduct v)
 
   (.*)  :: Scalar v -> v -> v -- Scalar-vector multiplication
   (.+)  :: v -> v -> v        -- Vector-vector addition
+  (.-)  :: v -> v -> v        -- Vector-vector subtraction
   
   inner     :: v -> v -> Scalar v -- Inner product 
   normalize :: v -> v
@@ -83,7 +84,6 @@ class (Scalar v ~ Complex (Realnum v), Floating (Realnum v), HasTensorProduct v)
 
   
 
-  
 class HasTensorProduct o where
   (⊗) :: o -> o -> o
 
@@ -111,8 +111,8 @@ instance Operator QOp
 type Outcomes = [Bool]     -- head = most recent
 type RNG      = [Double]   -- infinite steam in [0,1)
 
-infixr 8 ⊗, <.>
-infixr 7 ⊕, <+>
+infixr 8 ⊗, <.>, .*
+infixr 7 ⊕, <+>, .+, .-
 infixr 6 ∘, >:
 
 (@>) :: QOp -> Nat -> QOp
@@ -135,3 +135,12 @@ op_qubits op = case op of
     Adjoint   a   -> op_qubits a
     Permute   ks  -> length ks 
     _             -> 1 -- 1-qubit gates
+
+-- | TODO: 1) Where should this live? 2) SparseMat t, 3) Useful functions for SparseMat
+data SparseMat = SparseMat ((Int,Int), [((Int,Int), ComplexT)])
+   deriving (Show,Eq)
+
+
+class Convertible a b where
+  to   :: a -> b
+  from :: b -> a

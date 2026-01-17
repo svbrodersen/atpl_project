@@ -30,8 +30,8 @@ common common-options
         TypeApplications,
         ScopedTypeVariables,
         GeneralizedNewtypeDeriving,
-        OverloadedLists,
         DataKinds,
+        UndecidableInstances
 
 library core
     import:   warnings, common-options
@@ -45,7 +45,10 @@ library core
       HQP.QOp.HelperFunctions
       -- HQP Semantics backend implementations:
       HQP.QOp.MatrixSemantics     
-      HQP.QOp.TensorSemantics
+      HQP.QOp.StatevectorSemantics
+      --HQP.QOp.StateHmatrixSemantics
+      HQP.QOp.MPSSemantics
+      HQP.QOp.MPSSemanticsU      
       HQP.QOp.StabilizerSemantics 
       -- Pretty-printing HQP programs and representations:
       HQP.PrettyPrint
@@ -55,9 +58,6 @@ library core
       Programs.QFT
       Programs.QuantumAdder
       Programs.RepeaterProtocol
-      --
-      HQP.QOp.GPU.Compile
-      HQP.QOp.GPU.RunFuthark
 
     build-depends:  
         base,
@@ -67,9 +67,9 @@ library core
         array,
         containers,
         massiv,
---        hasktorch,
-        --
-        vector
+        vector,
+        deepseq
+--        hasktorch
     hs-source-dirs:   src
 
 common exe-common
@@ -77,7 +77,6 @@ common exe-common
   build-depends:
       base,
       hmatrix,
-      vector,
       hqp:core
   ghc-options: -Wall
 
@@ -132,6 +131,3 @@ executable Benchmark
       -Wno-missing-signatures
       -Wno-name-shadowing
       -Wno-incomplete-uni-patterns
-
-
-
