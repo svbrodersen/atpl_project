@@ -31,6 +31,22 @@ futhark_comment:
 			done \
 	done
 
-interface:
+backend:
 	futhark c --library main.fut -o ../interface/HQPlayground/futhark-gen/hqp_gpu
+
+# required backend targets for cabal interface builds
+interface: backend
 	cd ../interface/HQPlayground/; cabal build; cabal run Interface
+
+hybrid: backend
+	cd ../interface/HQPlayground/; cabal build; cabal run HybridGPUCPU
+
+unsupported: backend
+	cd ../interface/HQPlayground/; cabal build; cabal run UnsupportedGPU
+
+GPUHQP: backend
+	cd ../interface/HQPlayground/; cabal build; cabal run GPUHQPTests
+
+clean:
+	rm -rf data results ../interface/HQPlayground/futhark-gen/hqp_gpu 
+	cd ../interface/HQPlayground/; cabal clean
