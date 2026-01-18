@@ -155,3 +155,52 @@ executable HQPFut
       cudart
   build-depends:
       vector
+
+executable GPUHQPTests
+  import: exe-common
+  main-is: GPUHQPTests.hs
+  c-sources:
+      futhark-gen/hqp_gpu.c
+  include-dirs:
+      futhark-gen
+  extra-libraries:
+      OpenCL
+      m
+      cuda
+      nvrtc
+      cudart
+  build-depends:
+      vector
+
+executable UnsupportedGPU
+  import: exe-common
+  main-is: UnsupportedGPU.hs
+  c-sources:
+      futhark-gen/hqp_gpu.c
+  include-dirs:
+      futhark-gen
+  extra-libraries:
+      OpenCL
+      m
+      cuda
+      nvrtc
+      cudart
+  build-depends:
+      vector
+
+executable HybridGPUCPU
+  import: exe-common
+  main-is: HybridGPUCPU.hs
+  c-sources:
+      futhark-gen/hqp_gpu.c
+  include-dirs:
+      futhark-gen
+  extra-libraries:
+      OpenCL
+      m
+      cuda
+      nvrtc
+      cudart
+  build-depends:
+      vector,
+      random
