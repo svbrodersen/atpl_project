@@ -1,5 +1,6 @@
 module Main where
 
+import Prelude hiding ((<>))
 import HQP
 import qualified HQP.QOp.MatrixSemantics as MS
 import Criterion.Main
@@ -8,6 +9,8 @@ import Numeric.LinearAlgebra (atIndex)
 import System.Random (mkStdGen, randoms)
 import Data.Complex (Complex)
 import Control.DeepSeq (NFData, rnf)
+import Numeric.LinearAlgebra hiding (step) -- logic for assertions
+import Control.Monad (unless)
 
 -- Wrapper because no need to evaluate steps fully as these are only used in the setup phase, not benchmarking phase
 instance NFData Step where
@@ -88,6 +91,7 @@ main :: IO ()
 main = do
     args <- getArgs
     case args of
+        ["test"] -> runVerifyTests
         [] -> putStrLn "Usage: cabal run benchmark-criterion -- <filename>"
         (filename : critArgs) -> 
             withArgs critArgs $ defaultMain [
@@ -98,6 +102,47 @@ main = do
             ]
 
 
+runVerifyTests :: IO ()
+runVerifyTests = do
+
+    let Unitary h_op = interpretOperation 1 (1, 0, 0)
+    let h_out = MS.evalOp h_op <> MS.ket [0]
+    let h_exp = scalar (1/sqrt 2) * (MS.ket [0] + MS.ket [1])
+    assertState "Hadamard (Opcode 1)" h_out h_exp
+
+    -- Test 2: Phase/S-Gate (Opcode 2) |1> -> i|1>
+    let Unitary s_op = interpretOperation 1 (2, 0, 0)
+    let s_out = MS.evalOp s_op <> MS.ket [1]
+    let s_exp = scalar (exp (0:+ (pi/4))) * MS.ket [1] 
+    assertState "Phase/S (Opcode 2)" s_out s_exp
+
+    -- Test 3: CNOT Forward (Opcode 3) |10> -> |11>
+    let Unitary cx_op = interpretOperation 2 (3, 0, 1)
+    let cx_out = MS.evalOp cx_op <> MS.ket [1, 0]
+    let cx_exp = MS.ket [1, 1] 
+    assertState "CNOT Forward (c=0, t=1)" cx_out cx_exp
+
+    -- Test 4: CNOT Reverse (Opcode 3) |01> -> |11>
+    let Unitary rcx_op = interpretOperation 2 (3, 1, 0)
+    let rcx_out = MS.evalOp rcx_op <> MS.ket [0, 1]
+    let rcx_exp = MS.ket [1, 1]
+    assertState "CNOT Reverse (c=1, t=0)" rcx_out rcx_exp
+
+    putStrLn "Tests Complete."
+
+-- Helper to extract matrix from Unitary Step
+getMatrix :: Int -> Step -> MS.StateT
+getMatrix _ (Unitary op) = MS.evalOp op
+getMatrix _ _            = error "Not a unitary step"
+
+
+-- Helper to assert vector equality
+assertState :: String -> MS.StateT -> MS.StateT -> IO ()
+assertState name res expected = do
+    let diff = norm_2 (flatten (res - expected))
+    if diff < 1e-10 
+        then putStrLn $ " [PASS] " ++ name
+        else putStrLn $ " [FAIL] " ++ name ++ " (Diff: " ++ show diff ++ ")"
 
 
 
