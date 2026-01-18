@@ -3,8 +3,6 @@ import subprocess
 import csv
 import json
 
-# ================= CONFIGURATION =================
-# Must match your Makefile
 NUM_QUBITS = [2, 5, 10, 15, 20, 25]
 NUM_GATES  = [10, 100, 1000, 10000]
 
@@ -16,7 +14,6 @@ MAX_CPU_GATES  = 100
 # OUTPUT FILENAME
 FINAL_RESULTS_CSV = "results/results_combined.csv"
 
-# PATHS (Adjust these if your folder structure is different)
 PATH_ROOT    = os.path.dirname(os.path.abspath(__file__))
 PATH_DATA    = os.path.join(PATH_ROOT, "futhark/data")
 PATH_HASKELL = os.path.join(PATH_ROOT, "interface/HQPlayground")
@@ -25,7 +22,6 @@ PATH_QISKIT  = os.path.join(PATH_ROOT, "qiskit")
 # COMMAND TEMPLATES
 CMD_HASKELL = ["cabal", "run", "benchmark", "--"] 
 CMD_QISKIT  = ["python3", "benchmarking.py", "--file"]
-# =================================================
 
 def run_haskell(input_file):
     """
