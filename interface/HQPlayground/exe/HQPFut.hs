@@ -38,7 +38,7 @@ runHQP name prog = do
 
 --------------------------------------------------------------------------------
 -- HQP programs that stay inside your supported subset:
--- Supported by your compiler: H, S (as R Z (1/2)), CNOT (as C body with exactly one X), Measure, Initialize.
+-- Supported by compiler: H, S (as R Z (1/2)), CNOT (as C body with exactly one X), Measure, Initialize.
 
 -- Deterministic: measure |0>
 progDeterministic0 :: Program
