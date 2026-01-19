@@ -34,26 +34,5 @@ futhark_comment:
 backend:
 	futhark c --library main.fut -o ../interface/HQPlayground/futhark-gen/hqp_gpu
 
-hqp: backend
-	cd ../interface/HQPlayground/; cabal build
-
-# required backend targets for cabal interface builds
-interface: hqp
-	cd ../interface/HQPlayground/; cabal run interface
-
-hybrid: hqp
-	cd ../interface/HQPlayground/; cabal run HybridGPUCPU
-
-unsupported: hqp
-	cd ../interface/HQPlayground/; cabal run UnsupportedGPU
-
-GPUHQP: hqp
-	cd ../interface/HQPlayground/; cabal run GPUHQPTests
-
-python: 
-	pip install numpy pyperf qiskit qiskit-aer-gpu
-	cd ..; python3 run_benchmarks.py
-
 clean:
-	rm -rf data results ../interface/HQPlayground/futhark-gen/hqp_gpu 
-	cd ../interface/HQPlayground/; cabal clean
+	rm -rf "*.c" "*.h" "*.json" main
