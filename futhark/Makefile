@@ -35,4 +35,4 @@ backend:
 	futhark c --library main.fut -o ../interface/HQPlayground/futhark-gen/hqp_gpu
 
 clean:
-	rm -rf "*.c" "*.h" "*.json" main
+	rm -rf *.c *.h *.json main
